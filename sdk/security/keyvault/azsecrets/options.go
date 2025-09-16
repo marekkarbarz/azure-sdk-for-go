@@ -61,7 +61,7 @@ type SetSecretOptions struct {
 	// placeholder for future optional parameters
 }
 
-// UpdateSecretPropertiesOptions contains the optional parameters for the Client.UpdateSecretProperties method.
-type UpdateSecretPropertiesOptions struct {
+// UpdateSecretOptions contains the optional parameters for the Client.UpdateSecret method.
+type UpdateSecretOptions struct {
 	// placeholder for future optional parameters
 }

@@ -8,15 +8,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
-	"regexp"
-
 	azfake "github.com/Azure/azure-sdk-for-go/sdk/azcore/fake"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/fake/server"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+	"net/http"
+	"net/url"
+	"regexp"
 )
 
 // Server is a fake server for instances of the azsecrets.Client type.
@@ -65,9 +64,9 @@ type Server struct {
 	// HTTP status codes to indicate success: http.StatusOK
 	SetSecret func(ctx context.Context, name string, parameters azsecrets.SetSecretParameters, options *azsecrets.SetSecretOptions) (resp azfake.Responder[azsecrets.SetSecretResponse], errResp azfake.ErrorResponder)
 
-	// UpdateSecretProperties is the fake for method Client.UpdateSecretProperties
+	// UpdateSecret is the fake for method Client.UpdateSecret
 	// HTTP status codes to indicate success: http.StatusOK
-	UpdateSecretProperties func(ctx context.Context, name string, version string, parameters azsecrets.UpdateSecretPropertiesParameters, options *azsecrets.UpdateSecretPropertiesOptions) (resp azfake.Responder[azsecrets.UpdateSecretPropertiesResponse], errResp azfake.ErrorResponder)
+	UpdateSecret func(ctx context.Context, name string, version string, parameters azsecrets.UpdateSecretPropertiesParameters, options *azsecrets.UpdateSecretOptions) (resp azfake.Responder[azsecrets.UpdateSecretResponse], errResp azfake.ErrorResponder)
 }
 
 // NewServerTransport creates a new instance of ServerTransport with the provided implementation.
@@ -136,8 +135,8 @@ func (s *ServerTransport) dispatchToMethodFake(req *http.Request, method string)
 				res.resp, res.err = s.dispatchRestoreSecret(req)
 			case "Client.SetSecret":
 				res.resp, res.err = s.dispatchSetSecret(req)
-			case "Client.UpdateSecretProperties":
-				res.resp, res.err = s.dispatchUpdateSecretProperties(req)
+			case "Client.UpdateSecret":
+				res.resp, res.err = s.dispatchUpdateSecret(req)
 			default:
 				res.err = fmt.Errorf("unhandled API %s", method)
 			}
@@ -248,7 +247,7 @@ func (s *ServerTransport) dispatchGetSecret(req *http.Request) (*http.Response, 
 	if s.srv.GetSecret == nil {
 		return nil, &nonRetriableError{errors.New("fake for method GetSecret not implemented")}
 	}
-	const regexStr = `/secrets/(?P<secret_name>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)/?(?P<secret_version>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)?`
+	const regexStr = `/secrets/(?P<secret_name>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)/(?P<secret_version>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)`
 	regex := regexp.MustCompile(regexStr)
 	matches := regex.FindStringSubmatch(req.URL.EscapedPath())
 	if len(matches) < 3 {
@@ -482,11 +481,11 @@ func (s *ServerTransport) dispatchSetSecret(req *http.Request) (*http.Response, 
 	return resp, nil
 }
 
-func (s *ServerTransport) dispatchUpdateSecretProperties(req *http.Request) (*http.Response, error) {
-	if s.srv.UpdateSecretProperties == nil {
-		return nil, &nonRetriableError{errors.New("fake for method UpdateSecretProperties not implemented")}
+func (s *ServerTransport) dispatchUpdateSecret(req *http.Request) (*http.Response, error) {
+	if s.srv.UpdateSecret == nil {
+		return nil, &nonRetriableError{errors.New("fake for method UpdateSecret not implemented")}
 	}
-	const regexStr = `/secrets/(?P<secret_name>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)/?(?P<secret_version>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)?`
+	const regexStr = `/secrets/(?P<secret_name>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)/(?P<secret_version>[!#&$-;=?-\[\]_a-zA-Z0-9~%@]+)`
 	regex := regexp.MustCompile(regexStr)
 	matches := regex.FindStringSubmatch(req.URL.EscapedPath())
 	if len(matches) < 3 {
@@ -504,7 +503,7 @@ func (s *ServerTransport) dispatchUpdateSecretProperties(req *http.Request) (*ht
 	if err != nil {
 		return nil, err
 	}
-	respr, errRespr := s.srv.UpdateSecretProperties(req.Context(), nameParam, versionParam, body, nil)
+	respr, errRespr := s.srv.UpdateSecret(req.Context(), nameParam, versionParam, body, nil)
 	if respErr := server.GetError(errRespr, req); respErr != nil {
 		return nil, respErr
 	}

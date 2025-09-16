@@ -7,10 +7,9 @@ package azcertificates
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/runtime"
+	"reflect"
 )
 
 // MarshalJSON implements the json.Marshaller interface for type AdministratorContact.
@@ -967,6 +966,41 @@ func (k *KeyProperties) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON implements the json.Marshaller interface for type KeyVaultErrorError.
+func (k KeyVaultErrorError) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]any)
+	populate(objectMap, "code", k.Code)
+	populate(objectMap, "innererror", k.InnerError)
+	populate(objectMap, "message", k.Message)
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON implements the json.Unmarshaller interface for type KeyVaultErrorError.
+func (k *KeyVaultErrorError) UnmarshalJSON(data []byte) error {
+	var rawMsg map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rawMsg); err != nil {
+		return fmt.Errorf("unmarshalling type %T: %v", k, err)
+	}
+	for key, val := range rawMsg {
+		var err error
+		switch key {
+		case "code":
+			err = unpopulate(val, "Code", &k.Code)
+			delete(rawMsg, key)
+		case "innererror":
+			err = unpopulate(val, "InnerError", &k.InnerError)
+			delete(rawMsg, key)
+		case "message":
+			err = unpopulate(val, "Message", &k.Message)
+			delete(rawMsg, key)
+		}
+		if err != nil {
+			return fmt.Errorf("unmarshalling type %T: %v", k, err)
+		}
+	}
+	return nil
+}
+
 // MarshalJSON implements the json.Marshaller interface for type LifetimeAction.
 func (l LifetimeAction) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]any)
@@ -1237,6 +1271,8 @@ func (s SubjectAlternativeNames) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]any)
 	populate(objectMap, "dns_names", s.DNSNames)
 	populate(objectMap, "emails", s.Emails)
+	populate(objectMap, "ipAddresses", s.IPAddresses)
+	populate(objectMap, "uris", s.Uris)
 	populate(objectMap, "upns", s.UserPrincipalNames)
 	return json.Marshal(objectMap)
 }
@@ -1255,6 +1291,12 @@ func (s *SubjectAlternativeNames) UnmarshalJSON(data []byte) error {
 			delete(rawMsg, key)
 		case "emails":
 			err = unpopulate(val, "Emails", &s.Emails)
+			delete(rawMsg, key)
+		case "ipAddresses":
+			err = unpopulate(val, "IPAddresses", &s.IPAddresses)
+			delete(rawMsg, key)
+		case "uris":
+			err = unpopulate(val, "Uris", &s.Uris)
 			delete(rawMsg, key)
 		case "upns":
 			err = unpopulate(val, "UserPrincipalNames", &s.UserPrincipalNames)

@@ -69,8 +69,8 @@ type SetSecretResponse struct {
 	Secret
 }
 
-// UpdateSecretPropertiesResponse contains the response from method Client.UpdateSecretProperties.
-type UpdateSecretPropertiesResponse struct {
+// UpdateSecretResponse contains the response from method Client.UpdateSecret.
+type UpdateSecretResponse struct {
 	// A secret consisting of a value, id and its attributes.
 	Secret
 }
